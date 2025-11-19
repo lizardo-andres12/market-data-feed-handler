@@ -4,8 +4,21 @@
 #include <cstdint>
 
 
+/**
+ * @brief The enumeration of exchange message types. This is needed to correctly interpret message
+ * size and contents.
+ */
+enum class MessageType: std::uint8_t {
+    Trade = 1,
+    Quote
+};
+
+/**
+ * @brief The struct representation of a `TradeMessage` as sent by the exchange. This struct is
+ * packed to match the exact binary layout of a `TradeMessage`.
+ */
 struct __attribute__((packed)) TradeMessage {
-    std::uint8_t type;
+    MessageType type;
     std::uint64_t timestamp;
     std::uint64_t symbol;
     std::uint64_t price;
@@ -13,8 +26,12 @@ struct __attribute__((packed)) TradeMessage {
     std::uint8_t padding[3];
 };
 
+/**
+ * @brief The struct representation of a `QuoteMessage` as sent by the exchange. This struct is
+ * packed to match the exact binary layout of a `QuoteMessage`.
+ */
 struct __attribute__((packed)) QuoteMessage {
-    std::uint8_t type;
+    MessageType type;
     std::uint64_t timestamp;
     std::uint64_t symbol;
     std::uint64_t bidPrice;
@@ -24,8 +41,11 @@ struct __attribute__((packed)) QuoteMessage {
     std::uint8_t padding[3];
 };
 
+/**
+ * @brief Helper union to allow for reinterpretation of messages based on `type` field.
+ */
 union MarketDataMessage {
-    std::uint8_t type;
+    MessageType type;
     TradeMessage trade;
     QuoteMessage quote;
 };
