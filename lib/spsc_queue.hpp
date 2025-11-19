@@ -6,6 +6,16 @@
 #include <memory>
 
 
+/**
+ * @brief A generic container class for storing elements with a single producer thread and single consumer thread.
+ *
+ * This class provides lock-free, concurrency-safe operations to add and remove items into a FIFO ring buffer queue with constant size.
+ * The size of the queue must be a power of 2 on instantiation. This data structure will take ownership of all objects added.
+ *
+ * @tparam T The type of element to store in the Queue. This type must be moveable.
+ * @tparam N The size of the queue. This value must be a power of 2. The queue will dynamically allocate `sizeof(T) * N` many
+ * 		bytes for storage and will never move the queue from that allocated space.
+ */
 template <typename T, std::size_t N>
 class SPSCQueue {
     std::unique_ptr<T[]> queue_;
