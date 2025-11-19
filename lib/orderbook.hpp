@@ -1,7 +1,8 @@
-#ifndef ORDERBOOK_H
-#define ORDERBOOK_H
+#ifndef ORDERBOOK_HPP
+#define ORDERBOOK_HPP
 
 #include <cstdint>
+#include <optional>
 #include <unordered_map>
 
 using __book_key_t = std::uint64_t;
@@ -21,16 +22,11 @@ class OrderBook {
 public:
     OrderBook() = default;
 
-    const OrderBookEntry* getEntry(const __book_key_t key) const;
+    std::optional<const OrderBookEntry*> getEntry(const __book_key_t key) const;
 
     bool insertEntry(const __book_key_t key, OrderBookEntry& entry);
 
     bool updateEntry(const __book_key_t key, OrderBookEntry& entry);
-
-    bool isSymbolInBook(const __book_key_t key) const {
-	auto it = book.find(key);
-	return it != book.end();
-    }
 
     OrderBook(const OrderBook& ob) = delete;
     OrderBook(OrderBook&& ob) = delete;

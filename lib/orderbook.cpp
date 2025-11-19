@@ -1,15 +1,16 @@
-#ifndef ORDERBOOK_CXX
-#define ORDERBOOK_CXX
+#ifndef ORDERBOOK_CPP
+#define ORDERBOOK_CPP
 
+#include <optional>
 #include <utility>
 
 #include "lib/orderbook.hpp"
 
 
-const OrderBookEntry* OrderBook::getEntry(const __book_key_t key) const {
+std::optional<const OrderBookEntry*> OrderBook::getEntry(const __book_key_t key) const {
     auto it = book.find(key);
     if (it == book.end()) [[unlikely]] {
-	return nullptr;
+	return std::nullopt;
     }
     return &it->second;
 }
