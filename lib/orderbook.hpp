@@ -9,11 +9,11 @@ using __book_key_t = std::uint64_t;
 
 
 struct OrderBookEntry {
-    std::uint64_t bidPrice;
-    std::uint32_t bidQuantity;
-    std::uint64_t askPrice;
-    std::uint32_t askQuantity;
     std::uint64_t udpatedAt;
+    std::uint64_t bidPrice;
+    std::uint64_t askPrice;
+    std::uint32_t bidQuantity;
+    std::uint32_t askQuantity;
 };
 
 
