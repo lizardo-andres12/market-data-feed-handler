@@ -1,5 +1,5 @@
-#ifndef MESSAGES
-#define MESSAGES
+#ifndef MESSAGES_HPP
+#define MESSAGES_HPP
 
 #include <cstdint>
 

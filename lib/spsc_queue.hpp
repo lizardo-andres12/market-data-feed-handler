@@ -1,5 +1,5 @@
-#ifndef SPSC_QUEUE
-#define SPSC_QUEUE
+#ifndef SPSC_QUEUE_HPP
+#define SPSC_QUEUE_HPP
 
 #include <atomic>
 #include <cstddef>
