@@ -3,6 +3,8 @@ import struct
 import sys
 import random
 
+DEBUG=True if os.getenv('DEBUG', False) == 'true' else False
+
 def generate_market_data(filename, num_messages=1_000_000):
     symbols = [
         b'AAPL\x00\x00\x00\x00',
@@ -38,6 +40,9 @@ def generate_market_data(filename, num_messages=1_000_000):
                 ask_price = base_price + random.randint(0, 100)
                 ask_qty = random.randint(1, 20) * 100
                 
+                if DEBUG:
+                    print(f"QUOTE -> symbol: {symbol}, bid price: {bid_price}, bid qty: {bid_qty}, ask price: {ask_price}, ask qty: {ask_qty}, timestamp: {timestamp}")
+
                 f.write(struct.pack('<B', msg_type))
                 f.write(struct.pack('<Q', timestamp))
                 f.write(symbol)
@@ -51,6 +56,9 @@ def generate_market_data(filename, num_messages=1_000_000):
                 msg_type = 1
                 price = base_price + random.randint(-50, 50)
                 quantity = random.randint(1, 10) * 100
+
+                if DEBUG:
+                    print(f"TRADE -> symbol: {symbol}, price: {price}, qty: {quantity}, timestamp: {timestamp}")
                 
                 f.write(struct.pack('<B', msg_type))
                 f.write(struct.pack('<Q', timestamp))
@@ -67,7 +75,7 @@ if __name__ == '__main__':
         print(f"Error: trying to place file in ./build directory, which doesn't exist")
         sys.exit(1)
 
-    generate_market_data('./build/market_feed.bin', 1_000_000)
-    print("Generated market_feed.bin with 1M messages")
+    generate_market_data('./build/market_feed.bin', 1_050_000)
+    print("Generated market_feed.bin")
     sys.exit(0)
 
