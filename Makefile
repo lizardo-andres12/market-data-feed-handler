@@ -1,46 +1,45 @@
-CXX      = g++
-CXXFLAGS = -std=c++17 -O3 -march=native -pthread -I.
+CXX      := g++
+CXXFLAGS := -std=c++17 -O3 -march=native -pthread -Wall -Wextra -Iinclude -MMD -MP
 
-SRC_DIR   = src
-LIB_DIR   = lib
-BUILD_DIR = build
+SRC_DIR   := src
+BUILD_DIR := build
+BIN_DIR   := $(BUILD_DIR)/bin
 
-LIB_SRCS := $(wildcard $(LIB_DIR)/*.cpp)
-LIB_OBJS := $(patsubst $(LIB_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(LIB_SRCS))
+# Recursive search for source files in src/ and its subdirectories
+SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
 
-MAIN_SRC := $(SRC_DIR)/main.cpp
-MAIN_OBJ := $(BUILD_DIR)/main.o
+OBJS := $(SRCS:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
 
-TARGET     = $(BUILD_DIR)/main.out
-INPUT_FILE = $(BUILD_DIR)/market_feed.bin
+DEPS := $(OBJS:.o=.d)
 
-all: compile 
+# Target executable
+TARGET     := $(BIN_DIR)/main.out
+INPUT_FILE := $(BUILD_DIR)/market_feed.bin 
 
-compile: lib main link
+.PHONY: all clean run gentest directories
 
-lib: $(LIB_OBJS)
+all: directories $(TARGET)
 
-$(BUILD_DIR)/%.o: $(LIB_DIR)/%.cpp
-	@mkdir -p $(BUILD_DIR)
+$(TARGET): $(OBJS)
+	@echo "Linking $@"
+	@$(CXX) $(CXXFLAGS) $(OBJS) -o $@
+
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
+	@echo "Compiling $<"
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-main: $(MAIN_OBJ)
+directories:
+	@mkdir -p $(BIN_DIR)
 
-$(BUILD_DIR)/main.o: $(MAIN_SRC)
-	@mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-link: $(TARGET)
-
-$(TARGET): $(MAIN_OBJ) $(LIB_OBJS)
-	$(CXX) $(CXXFLAGS) $^ -o $@
-
-run: $(TARGET) $(INPUT_FILE)
+run: $(TARGET)
 	./$(TARGET) < $(INPUT_FILE)
 
 clean:
-	rm -rf $(BUILD_DIR)/*
+	@echo "Cleaning build directory..."
+	@rm -rf $(BUILD_DIR)
 
 gentest: test_generator.py
 	python3 test_generator.py
 
+-include $(DEPS)

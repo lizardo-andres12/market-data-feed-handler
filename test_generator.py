@@ -75,7 +75,7 @@ if __name__ == '__main__':
         print(f"Error: trying to place file in ./build directory, which doesn't exist")
         sys.exit(1)
 
-    generate_market_data('./build/market_feed.bin', 1_050_000)
+    generate_market_data('./build/market_feed.bin', 5_000_000)
     print("Generated market_feed.bin")
     sys.exit(0)
 

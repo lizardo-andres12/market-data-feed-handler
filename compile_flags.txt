@@ -1,2 +1,2 @@
 # for LSP to stop complaining about my directory structure
--I.
+-I./include/

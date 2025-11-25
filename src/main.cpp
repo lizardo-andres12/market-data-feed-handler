@@ -12,10 +12,10 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include "lib/messages.hpp"
-#include "lib/orderbook.hpp"
-#include "lib/spsc_queue.hpp"
-#include "lib/vwap_tracker.hpp"
+#include "messages.hpp"
+#include "orderbook/orderbook.hpp"
+#include "ringbuffer/spsc_queue.hpp"
+#include "vwap_tracker/vwap_tracker.hpp"
 
 
 void printResults(const OrderBook& book, const VWAPTracker& vwap, std::uint64_t totalMessages, double elapsedMs) {

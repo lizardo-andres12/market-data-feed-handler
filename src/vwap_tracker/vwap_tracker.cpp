@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <iostream>
 
-#include "lib/vwap_tracker.hpp"
+#include "vwap_tracker/vwap_tracker.hpp"
 
 
 std::optional<const VWAPEntry*> VWAPTracker::getVWAP(std::uint64_t symbol) const {
