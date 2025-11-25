@@ -37,7 +37,7 @@ void printResults(const OrderBook& book, const VWAPTracker& vwap, std::uint64_t 
 }
 
 int main() {
-    SPSCQueue<MarketDataMessage, 4096> queue;
+    SPSCQueue<MarketDataMessage, 8192> queue;
     MarketDataMessage msg;
     OrderBook book;
     VWAPTracker vwapTracker;
@@ -71,13 +71,14 @@ int main() {
     bufferPtr += sizeof(std::uint64_t);
 
     const auto producerFunctor = [&queue, &bufferPtr](const std::uint64_t numExpectedMessages) {
-	MarketDataMessage currentMsg;
+	MarketDataMessage msg;
 	std::uint8_t type;
-
 	std::uint64_t processedCount { 0 };
 
 	for (std::uint64_t i = 0; i < numExpectedMessages; ++i) {
-	    MarketDataMessage msg;
+	    if (i + 1 < numExpectedMessages) {
+		__builtin_prefetch(bufferPtr + 64, 0, 3);
+	    }
 	    type = *bufferPtr;
 
 	    if (static_cast<MessageType>(type) == MessageType::Trade) {
@@ -95,8 +96,6 @@ int main() {
 
     const auto consumerFunctor = [&queue, &book, &vwapTracker](const std::uint64_t numExpectedMessages) {
 	MarketDataMessage currentMsg;
-	OrderBookEntry newEntry;
-
 	std::uint64_t processedCount { 0 };
 
 	while (processedCount < numExpectedMessages) {
@@ -106,7 +105,7 @@ int main() {
 		    vwapTracker.upsertVWAP(msg.symbol, msg.price, msg.quantity);
 		} else {
 		    const QuoteMessage& msg = currentMsg.quote;
-		    newEntry = {
+		    OrderBookEntry newEntry = {
 			msg.timestamp, msg.bidPrice, msg.askPrice, msg.bidQuantity, msg.askQuantity
 		    };
 
@@ -131,6 +130,11 @@ int main() {
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> duration = end - start;
     printResults(book, vwapTracker, numExpectedMessages, duration.count());
+
+    if (munmap(mappedData, st.st_size)) {
+	perror("munmap");
+	return 1;
+    }
 
     return 0;
 }
