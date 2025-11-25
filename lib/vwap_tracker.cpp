@@ -1,6 +1,7 @@
 #ifndef VWAP_TRACKER_CPP
 #define VWAP_TRACKER_CPP
 
+#include <cstring>
 #include <iomanip>
 #include <iostream>
 
@@ -36,12 +37,14 @@ void VWAPTracker::showStats() const {
               << std::setw(15) << "Trade Count\n";
     std::cout << std::string(54, '-') << '\n';
     
+    char symStr[8] = {0};
     for (const auto& [symbol, vwap] : tracker_) {
         if (vwap.totalQuantity == 0) continue;
         
+	std::memcpy(symStr, &symbol, sizeof(symbol));
         double vwap_price = static_cast<double>(vwap.totalPriceByQuantity) / vwap.totalQuantity / 100.0;
         
-        std::cout << std::left << std::setw(12) << symbol
+        std::cout << std::left << std::setw(12) << symStr
                   << std::right << "$" << std::fixed << std::setprecision(2)
                   << std::setw(10) << vwap_price
                   << std::setw(15) << vwap.totalQuantity

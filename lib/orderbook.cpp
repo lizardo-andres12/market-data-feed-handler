@@ -1,6 +1,7 @@
 #ifndef ORDERBOOK_CPP
 #define ORDERBOOK_CPP
 
+#include <cstring>
 #include <iomanip>
 #include <iostream>
 
@@ -34,8 +35,10 @@ void OrderBook::showState() const {
               << std::setw(15) << "Last Update\n";
     std::cout << std::string(73, '-') << '\n';
     
+    char symStr[8] = {0};
     for (const auto& [symbol, book] : book_) {
-        std::cout << std::left << std::setw(12) << symbol
+	std::memcpy(symStr, &symbol, sizeof(symbol));
+        std::cout << std::left << std::setw(12) << symStr
                   << std::right << std::fixed << std::setprecision(2)
                   << std::setw(12) << (book.bidPrice / 100.0)
                   << std::setw(12) << book.bidQuantity
