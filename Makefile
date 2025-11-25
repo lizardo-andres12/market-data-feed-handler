@@ -1,45 +1,36 @@
-CXX      := g++
-CXXFLAGS := -std=c++17 -O3 -march=native -pthread -Wall -Wextra -Iinclude -MMD -MP
+# Wrapper Makefile for CMake
+# This allows you to run "make run" or "make test" from the root
+# without worrying about cmake commands.
 
-SRC_DIR   := src
 BUILD_DIR := build
-BIN_DIR   := $(BUILD_DIR)/bin
+EXECUTABLE := $(BUILD_DIR)/main.out
+INPUT_FILE := $(BUILD_DIR)/market_feed.bin
+TEST_GEN_SCRIPT := test_generator.py
 
-# Recursive search for source files in src/ and its subdirectories
-SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
+TYPE ?= Release
+EXTRA_FLAGS ?=
 
-OBJS := $(SRCS:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
+.PHONY: all build run test clean
 
-DEPS := $(OBJS:.o=.d)
+all: build
 
-# Target executable
-TARGET     := $(BIN_DIR)/main.out
-INPUT_FILE := $(BUILD_DIR)/market_feed.bin 
+build:
+	@mkdir -p $(BUILD_DIR)
+	@cmake -S . -B $(BUILD_DIR) \
+		-DCMAKE_BUILD_TYPE=$(TYPE) \
+		-DCMAKE_CXX_FLAGS="$(EXTRA_FLAGS)"
+	@cmake --build $(BUILD_DIR)
+	@cp $(BUILD_DIR)/compile_commands.json .  # So clangd LSP stops complaining about `#include` paths
 
-.PHONY: all clean run gentest directories
+run: $(EXECUTABLE)
+	./$(EXECUTABLE) < $(INPUT_FILE)
 
-all: directories $(TARGET)
+tgen: $(TEST_GEN_SCRIPT)
+	python3 $(TEST_GEN_SCRIPT)
 
-$(TARGET): $(OBJS)
-	@echo "Linking $@"
-	@$(CXX) $(CXXFLAGS) $(OBJS) -o $@
-
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(dir $@)
-	@echo "Compiling $<"
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-directories:
-	@mkdir -p $(BIN_DIR)
-
-run: $(TARGET)
-	./$(TARGET) < $(INPUT_FILE)
+test: $(BUILD_DIR)
+	@cd $(BUILD_DIR) && ctest --output-on-failure
 
 clean:
-	@echo "Cleaning build directory..."
-	@rm -rf $(BUILD_DIR)
+	@rm -rf $(BUILD_DIR)/*
 
-gentest: test_generator.py
-	python3 test_generator.py
-
--include $(DEPS)
