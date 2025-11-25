@@ -87,7 +87,7 @@ int main() {
 		std::memcpy(&msg.quote, bufferPtr, sizeof(QuoteMessage));
 		bufferPtr += sizeof(QuoteMessage);
 	    }
-	    while (queue.enqueue(currentMsg)) {
+	    while (!queue.enqueue(msg)) {
 		std::this_thread::yield();
 	    }
 	}
@@ -129,7 +129,7 @@ int main() {
     consumer.join();
 
     auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::chrono::duration<double, std::milli> duration = end - start;
     printResults(book, vwapTracker, numExpectedMessages, duration.count());
 
     return 0;
