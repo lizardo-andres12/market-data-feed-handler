@@ -38,7 +38,6 @@ void printResults(const OrderBook& book, const VWAPTracker& vwap, std::uint64_t 
 
 int main() {
     SPSCQueue<MarketDataMessage, 8192> queue;
-    MarketDataMessage msg;
     OrderBook book;
     VWAPTracker vwapTracker;
     std::uint8_t* bufferPtr;
@@ -73,7 +72,6 @@ int main() {
     const auto producerFunctor = [&queue, &bufferPtr](const std::uint64_t numExpectedMessages) {
 	MarketDataMessage msg;
 	std::uint8_t type;
-	std::uint64_t processedCount { 0 };
 
 	for (std::uint64_t i = 0; i < numExpectedMessages; ++i) {
 	    if (i + 1 < numExpectedMessages) {
