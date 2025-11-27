@@ -18,6 +18,14 @@
 #include "vwap_tracker/vwap_tracker.hpp"
 
 
+/**
+ * @brief Helper function to hold all end-of-execution output logic.
+ *
+ * @param book The orderbook used in execution.
+ * @param vwap The VWAP tracker used in execution.
+ * @param totalMessages The total count of messages processed.
+ * @param elapsedMs The time from start of execution to end of execution.
+ */
 void printResults(const OrderBook& book, const VWAPTracker& vwap, std::uint64_t totalMessages, double elapsedMs) {
     book.showState();
     vwap.showStats();
@@ -36,6 +44,9 @@ void printResults(const OrderBook& book, const VWAPTracker& vwap, std::uint64_t 
 	<< latency_us << " μs\n";
 }
 
+/**
+ * @brief The entry point of the program. This program simulates reading a stream market exchange data and processing that data by maintaining an in-memory copy of the Orderbook and relevant statistics used in trading strategies. Data is processed in little-endian format and inserted into a lock-free queue by a single producer thread, and a single consumer thread dequeues the messages and updates the in-memory data structures accordingly. 
+ */
 int main() {
     SPSCQueue<MarketDataMessage, 8192> queue;
     OrderBook book;
@@ -61,8 +72,8 @@ int main() {
 
     void* mappedData = mmap(nullptr, st.st_size, PROT_READ, MAP_PRIVATE, STDIN_FD, 0);
     if (mappedData == MAP_FAILED) {
-	perror("mmap");
-	return 1;
+        perror("mmap");
+        return 1;
     }
 
     bufferPtr = static_cast<std::uint8_t*>(mappedData);
@@ -99,15 +110,9 @@ int main() {
 	while (processedCount < numExpectedMessages) {
 	    if (queue.dequeue(currentMsg)) {
 		if (currentMsg.type == MessageType::Trade) {
-		    const TradeMessage& msg = currentMsg.trade;
-		    vwapTracker.upsertVWAP(msg.symbol, msg.price, msg.quantity);
+		    vwapTracker.upsertVWAP(currentMsg.trade.symbol, currentMsg.trade);
 		} else {
-		    const QuoteMessage& msg = currentMsg.quote;
-		    OrderBookEntry newEntry = {
-			msg.timestamp, msg.bidPrice, msg.askPrice, msg.bidQuantity, msg.askQuantity
-		    };
-
-		    book.upsertEntry(msg.symbol, newEntry);
+		    book.upsertEntry(currentMsg.quote.symbol, currentMsg.quote);
 		}
 		++processedCount;
 	    } else { /// SPSCQueue::dequeue is empty, wait for producer to enqueue
@@ -130,8 +135,8 @@ int main() {
     printResults(book, vwapTracker, numExpectedMessages, duration.count());
 
     if (munmap(mappedData, st.st_size)) {
-	perror("munmap");
-	return 1;
+        perror("munmap");
+        return 1;
     }
 
     return 0;
