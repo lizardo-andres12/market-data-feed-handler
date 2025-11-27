@@ -1,14 +1,12 @@
-#ifndef VWAP_TRACKER_CPP
-#define VWAP_TRACKER_CPP
-
 #include <cstring>
 #include <iomanip>
 #include <iostream>
 
 #include "vwap_tracker/vwap_tracker.hpp"
+#include "messages.hpp"
 
 
-std::optional<const VWAPEntry*> VWAPTracker::getVWAP(std::uint64_t symbol) const {
+auto VWAPTracker::getVWAP(std::uint64_t symbol) const -> std::optional<const VWAPEntry*> {
     auto it = tracker_.find(symbol);
     if (it == tracker_.end()) {
 	return std::nullopt;
@@ -16,16 +14,16 @@ std::optional<const VWAPEntry*> VWAPTracker::getVWAP(std::uint64_t symbol) const
     return &it->second;
 }
 
-void VWAPTracker::upsertVWAP(std::uint64_t symbol, std::uint64_t price, std::uint32_t quantity) {
+void VWAPTracker::upsertVWAP(std::uint64_t symbol, const TradeMessage& msg) {
     auto it = tracker_.find(symbol);
     if (it == tracker_.end()) {
-	tracker_[symbol] = {price * quantity, quantity, 1};
+	tracker_[symbol] = {msg.price * msg.quantity, msg.quantity, 1};
 	return;
     }
     VWAPEntry& entry = it->second;
     ++entry.totalTrades;
-    entry.totalPriceByQuantity += price * quantity;
-    entry.totalQuantity += quantity;
+    entry.totalPriceByQuantity += msg.price * msg.quantity;
+    entry.totalQuantity += msg.quantity;
     return;
 }
 
@@ -51,7 +49,4 @@ void VWAPTracker::showStats() const {
                   << std::setw(15) << vwap.totalTrades << '\n';
     }
 }
-
-
-#endif
 

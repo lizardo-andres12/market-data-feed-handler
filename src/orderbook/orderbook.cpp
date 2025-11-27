@@ -1,6 +1,3 @@
-#ifndef ORDERBOOK_CPP
-#define ORDERBOOK_CPP
-
 #include <cstring>
 #include <iomanip>
 #include <iostream>
@@ -8,21 +5,21 @@
 #include "orderbook/orderbook.hpp"
 
 
-std::optional<const OrderBookEntry*> OrderBook::getEntry(const __book_key_t key) const {
+auto OrderBook::getEntry(const std::uint64_t key) const -> std::optional<const OrderBookEntry*> {
     auto it = book_.find(key);
-    if (it == book_.end()) [[unlikely]] {
+    if (it == book_.end()) {
 	return std::nullopt;
     }
     return &it->second;
 }
 
-void OrderBook::upsertEntry(const __book_key_t key, OrderBookEntry& entry) {
+void OrderBook::upsertEntry(const std::uint64_t key, const QuoteMessage& msg) {
     auto it = book_.find(key);
     if (it == book_.end()) {
-	book_[key] = std::move(entry);
+	book_[key] = {msg.timestamp, msg.bidPrice, msg.askPrice, msg.bidQuantity, msg.askQuantity};
 	return;
     }
-    it->second = std::move(entry);
+    it->second = {msg.timestamp, msg.bidPrice, msg.askPrice, msg.bidQuantity, msg.askQuantity};
 }
 
 void OrderBook::showState() const {
@@ -47,7 +44,4 @@ void OrderBook::showState() const {
                   << std::setw(15) << book.udpatedAt << '\n';
     }
 }
-
-
-#endif
 
