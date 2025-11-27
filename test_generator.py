@@ -4,6 +4,7 @@ import sys
 import random
 
 DEBUG=True if os.getenv('DEBUG', False) == 'true' else False
+NUM_MESSAGES=int(os.getenv('MSGS', 1_000_000))
 
 def generate_market_data(filename, num_messages=1_000_000):
     symbols = [
@@ -75,7 +76,7 @@ if __name__ == '__main__':
         print(f"Error: trying to place file in ./build directory, which doesn't exist")
         sys.exit(1)
 
-    generate_market_data('./build/market_feed.bin', 5_000_000)
+    generate_market_data('./build/market_feed.bin', NUM_MESSAGES)
     print("Generated market_feed.bin")
     sys.exit(0)
 
