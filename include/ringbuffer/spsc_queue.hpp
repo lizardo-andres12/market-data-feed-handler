@@ -1,5 +1,4 @@
-#ifndef SPSC_QUEUE_HPP
-#define SPSC_QUEUE_HPP
+#pragma once
 
 #include <atomic>
 #include <cstddef>
@@ -23,7 +22,7 @@ class SPSCQueue {
     alignas(64) std::atomic<std::size_t> writeIdx_ { 0 };
 public:
     /**
-     * @brief Constructor for SPSPQueue class. Necessary parameters are provided through the template.
+     * @brief Constructor for SPSCQueue class. Necessary parameters are provided through the template.
      */
     SPSCQueue() : queue_ { std::make_unique<T[]>(N) } {
 	static_assert(N >= 2, "SPSC Queue can only be instantiated with size that is greater than or equal to 2");
@@ -119,7 +118,4 @@ bool SPSCQueue<T, N>::dequeue(T& item) {
     readIdx_.store(nextReadIdx, std::memory_order_release);
     return true;
 }
-
-
-#endif
 

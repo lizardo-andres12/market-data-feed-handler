@@ -1,5 +1,4 @@
-#ifndef MESSAGES_HPP
-#define MESSAGES_HPP
+#pragma once
 
 #include <cstdint>
 
@@ -49,7 +48,4 @@ union MarketDataMessage {
     TradeMessage trade;
     QuoteMessage quote;
 };
-
-
-#endif
 
