@@ -8,8 +8,9 @@ INPUT_FILE := $(BUILD_DIR)/market_feed.bin
 TEST_GEN_SCRIPT := test_generator.py
 
 TYPE ?= Release
-EXTRA_FLAGS ?=
 TSAN ?= OFF
+EXTRA_FLAGS ?=
+NPROC ?=
 
 .PHONY: all build run test clean
 
@@ -23,6 +24,15 @@ build:
 		-DENABLE_TSAN=$(TSAN)
 	@cmake --build $(BUILD_DIR)
 	@cp $(BUILD_DIR)/compile_commands.json .  # So clangd LSP stops complaining about `#include` paths
+
+build-ci:
+	@mkdir -p $(BUILD_DIR)
+	@cmake -S . -B $(BUILD_DIR) \
+		-DCMAKE_BUILD_TYPE=$(TYPE) \
+		-DCMAKE_CXX_FLAGS="$(EXTRA_FLAGS)" \
+		-DCMAKE_BUILD_PARALLEL_LEVEL="$(NPROC)" \
+		-DENABLE_TSAN=$(TSAN)
+	@cmake --build $(BUILD_DIR)
 
 run: $(EXECUTABLE)
 	./$(EXECUTABLE) < $(INPUT_FILE)
