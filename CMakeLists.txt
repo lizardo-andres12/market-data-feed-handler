@@ -9,6 +9,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_options(-march=native -Wall -pedantic-errors)
 
+option(ENABLE_TSAN "Enable Thread Sanitizer for race condition detection" OFF)
+if(ENABLE_TSAN)
+    message(STATUS "Thread Sanitizer enabled, performance will drop")
+    add_compile_options(-fsanitize=thread)
+    add_link_options(-fsanitize=thread)
+endif()
+
 
 # --- GTest Setup ---
 include(FetchContent)
