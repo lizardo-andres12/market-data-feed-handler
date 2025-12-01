@@ -1,19 +1,12 @@
-# market-data-feed-handler
-Task 6 of High Performance Computing C++ practice
+# Market Data Feed Handler
 
----
+A high-performance, multi-threaded market data processing system for parsing and analyzing binary market data feeds in real-time.
 
-## **Task 6: Complete Market Data Feed Handler**
+## Overview
 
-**Difficulty: Expert**
+This system processes binary-encoded trade and quote messages using a lock-free architecture to achieve high throughput and low latency. It maintains order books per symbol, calculates volume-weighted average prices (VWAP), and provides comprehensive performance statistics.
 
-This **realistic market data processing system** combines everything you've learned:
-- Binary message parsing (Task 4)
-- Order book management (Task 2)
-- VWAP calculation (Task 3)
-- Lock-free queues (Task 5)
-
-### The System:
+### Architecture
 
 ```
 [Binary Market Data File]
@@ -26,34 +19,17 @@ This **realistic market data processing system** combines everything you've lear
                                                    [Statistics]
 ```
 
----
+### Key Features
 
-## **Specs:**
+- **Zero-copy binary message parsing** for minimal overhead
+- **Lock-free ring buffer** for inter-thread communication
+- **Per-symbol order book** tracking best bid/ask
+- **Real-time VWAP calculation** for all trades
+- **Performance metrics** including throughput and latency
 
-This is a multi-threaded system that:
+## Binary Message Format
 
-1. **Parser Thread:**
-   - Reads binary market data from stdin
-   - Parses trade and quote messages (zero-copy)
-   - Pushes messages to lock-free queue
-
-2. **Processor Thread:**
-   - Pops messages from queue
-   - Updates order book for quotes
-   - Calculates VWAP for trades
-   - Tracks statistics
-
-3. **Output:**
-   - Final order book state (best 5 bid/ask levels)
-   - VWAP per symbol
-   - Message processing rate
-   - Total latency (end-to-end)
-
----
-
-## **Binary Message Format:**
-
-### **Message Types:**
+### Message Types
 
 ```cpp
 enum class MessageType : uint8_t {
@@ -62,51 +38,47 @@ enum class MessageType : uint8_t {
 };
 ```
 
-### **Trade Message (32 bytes):**
+### Trade Message (32 bytes)
+
 ```
 [Type: 1 byte][Timestamp: 8 bytes][Symbol: 8 bytes][Price: 8 bytes][Quantity: 4 bytes][Padding: 3 bytes]
 ```
 
-### **Quote Message (40 bytes):**
+```cpp
+struct TradeMessage {
+    MessageType type;
+    uint64_t timestamp;  // Microseconds since epoch
+    uint64_t symbol;     // 8-byte symbol identifier
+    uint64_t price;      // Price in cents
+    uint32_t quantity;   // Share quantity
+    uint8_t padding[3];
+};
+```
+
+### Quote Message (44 bytes)
+
 ```
 [Type: 1 byte][Timestamp: 8 bytes][Symbol: 8 bytes][Bid Price: 8 bytes][Bid Qty: 4 bytes][Ask Price: 8 bytes][Ask Qty: 4 bytes][Padding: 3 bytes]
 ```
 
-**Note:** Quotes are **snapshots** (not incremental). When you receive a quote for AAPL, it replaces the previous AAPL quote entirely.
-
----
-
-## **Message Structures:**
-
 ```cpp
-struct MessageHeader {
-    uint8_t type;
-    uint64_t timestamp;  // Microseconds
-    char symbol[8];
-};
-
-struct TradeMessage {
-    MessageHeader header;
-    uint64_t price;      // Cents
-    uint32_t quantity;
-    uint8_t padding[3];
-};
-
 struct QuoteMessage {
-    MessageHeader header;
-    uint64_t bid_price;  // Cents
-    uint32_t bid_qty;
-    uint64_t ask_price;  // Cents
-    uint32_t ask_qty;
+    MessageType type;
+    uint64_t timestamp;  // Microseconds since epoch
+    uint64_t symbol;     // 8-byte symbol identifier
+    uint64_t bid_price;  // Bid price in cents
+    uint32_t bid_qty;    // Bid quantity
+    uint64_t ask_price;  // Ask price in cents
+    uint32_t ask_qty;    // Ask quantity
     uint8_t padding[3];
 };
 ```
 
----
+**Note:** Quote messages are snapshots that replace the previous quote for a given symbol entirely (not incremental updates).
 
-### **1. Order Book Per Symbol:**
+## Data Structures
 
-Track best bid/ask for each symbol. For simplicity, just track **top level** (not full depth):
+### Order Book Entry
 
 ```cpp
 struct OrderBookEntry {
@@ -117,24 +89,22 @@ struct OrderBookEntry {
     uint64_t last_update_time;
 };
 
-std::unordered_map<std::string, OrderBookEntry> order_books;
+std::unordered_map<uint64_t, OrderBookEntry> order_books;
 ```
 
-### **2. VWAP Tracker Per Symbol:**
+### VWAP Tracker
 
 ```cpp
-struct VWAPData {
-    uint64_t sum_price_qty;  // Sum of (price * quantity)
-    uint64_t sum_qty;        // Sum of quantity
-    uint32_t trade_count;
+struct VWAPEntry {
+    uint64_t sum_price_qty;  // Sum of (price × quantity)
+    uint64_t sum_qty;        // Total quantity
+    uint32_t trade_count;    // Number of trades
 };
 
-std::unordered_map<std::string, VWAPData> vwap_trackers;
+std::unordered_map<uint64_t, VWAPEntry> vwap_trackers;
 ```
 
-### **3. Message Union (for queue):**
-
-Since messages have different sizes, use a union:
+### Message Union
 
 ```cpp
 union MarketDataMessage {
@@ -144,9 +114,17 @@ union MarketDataMessage {
 };
 ```
 
----
+## Building
 
-## **Output Format:**
+```bash
+# Compile with thread sanitizer for validation
+g++ -std=c++17 -O3 -pthread -fsanitize=thread -o feed_handler main.cpp
+
+# Run with test data
+./feed_handler < market_feed.bin
+```
+
+## Output Format
 
 ```
 === Order Books ===
@@ -164,9 +142,9 @@ Throughput: 4,000,000 msgs/sec
 Average latency: 45 ns/msg
 ```
 
----
+## Test Data Generation
 
-## **Test Data Generator:**
+A Python script is provided to generate binary market data files:
 
 ```python
 import struct
@@ -180,7 +158,6 @@ def generate_market_data(filename, num_messages=1_000_000):
         b'AMZN\x00\x00\x00\x00',
     ]
     
-    # Base prices for each symbol (in cents)
     base_prices = {
         b'AAPL\x00\x00\x00\x00': 15000,
         b'GOOGL\x00\x00\x00': 280000,
@@ -189,18 +166,14 @@ def generate_market_data(filename, num_messages=1_000_000):
     }
     
     with open(filename, 'wb') as f:
-        # Write number of messages
         f.write(struct.pack('<Q', num_messages))
-        
-        timestamp = 1000000  # Start at 1 second
+        timestamp = 1000000
         
         for i in range(num_messages):
             symbol = random.choice(symbols)
             base_price = base_prices[symbol]
             
-            # 70% quotes, 30% trades
-            if random.random() < 0.7:
-                # Quote message
+            if random.random() < 0.7:  # 70% quotes
                 msg_type = 2
                 bid_price = base_price + random.randint(-100, 0)
                 bid_qty = random.randint(1, 20) * 100
@@ -214,9 +187,8 @@ def generate_market_data(filename, num_messages=1_000_000):
                 f.write(struct.pack('<I', bid_qty))
                 f.write(struct.pack('<Q', ask_price))
                 f.write(struct.pack('<I', ask_qty))
-                f.write(b'\x00\x00\x00')  # Padding
-            else:
-                # Trade message
+                f.write(b'\x00\x00\x00')
+            else:  # 30% trades
                 msg_type = 1
                 price = base_price + random.randint(-50, 50)
                 quantity = random.randint(1, 10) * 100
@@ -226,9 +198,8 @@ def generate_market_data(filename, num_messages=1_000_000):
                 f.write(symbol)
                 f.write(struct.pack('<Q', price))
                 f.write(struct.pack('<I', quantity))
-                f.write(b'\x00\x00\x00')  # Padding
+                f.write(b'\x00\x00\x00')
             
-            # Increment timestamp (random microseconds)
             timestamp += random.randint(1, 100)
 
 if __name__ == '__main__':
@@ -236,22 +207,21 @@ if __name__ == '__main__':
     print("Generated market_feed.bin with 1M messages")
 ```
 
----
+Usage:
+```bash
+python generate_data.py
+```
 
-## **Constraints:**
+## Configuration
 
-- Process **1,000,000+ messages**
-- Target throughput: **5M+ messages/sec**
-- Ring buffer size: **8192 elements** (power of 2)
-- Keep total code under **500 lines**
-- Must compile with `-fsanitize=thread` without errors
+- **Ring buffer size:** 8192 elements (power of 2)
+- **Default test size:** 1,000,000 messages
+- **Thread model:** Single parser thread, single processor thread
 
----
+## Performance Benchmarks
 
-## **Performance Expectations:**
-
-| Implementation Quality | Throughput | Latency |
-|------------------------|------------|---------|
-| Basic (single-threaded) | 1-2M msg/s | 500ns |
-| Good (multi-threaded) | 5-10M msg/s | 200ns |
-| Excellent (optimized) | 20-50M msg/s | 50ns |
+| Configuration | Throughput | Avg Latency |
+|---------------|------------|-------------|
+| Single-threaded | 1-2M msg/s | ~500ns |
+| Multi-threaded | 5-10M msg/s | ~200ns |
+| Optimized | 20-50M msg/s | ~50ns |
