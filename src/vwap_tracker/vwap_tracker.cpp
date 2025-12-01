@@ -17,10 +17,11 @@ auto VWAPTracker::getVWAP(std::uint64_t symbol) const -> std::optional<const VWA
 void VWAPTracker::upsertVWAP(std::uint64_t symbol, const TradeMessage& msg) {
     auto it = tracker_.find(symbol);
     if (it == tracker_.end()) {
-	tracker_[symbol] = {msg.price * msg.quantity, msg.quantity, 1};
+	tracker_[symbol] = {msg.timestamp, msg.price * msg.quantity, msg.quantity, 1};
 	return;
     }
     VWAPEntry& entry = it->second;
+    entry.updatedAt = msg.timestamp;
     ++entry.totalTrades;
     entry.totalPriceByQuantity += msg.price * msg.quantity;
     entry.totalQuantity += msg.quantity;
