@@ -17,6 +17,7 @@ public:
      * @brief The collection of relevant data to store in the VWAPTracker for a given symbol.
      */
     struct VWAPEntry {
+	std::uint64_t updatedAt;
 	std::uint64_t totalPriceByQuantity;
 	std::uint64_t totalQuantity;
 	std::uint32_t totalTrades;
@@ -42,6 +43,10 @@ public:
      * @param msg The data of the incoming trade.
      */
     void upsertVWAP(const std::uint64_t symbol, const TradeMessage& msg);
+
+    std::size_t size() const {
+	return tracker_.size();
+    }
 
     /**
      * @brief Displays stored symbols and their metadata.
