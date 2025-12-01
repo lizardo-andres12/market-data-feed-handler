@@ -285,7 +285,7 @@ jobs:
 
   summary:
     name: CI Summary
-    runs-on: ubunty-latest
+    runs-on: ubuntu-latest
     needs: [test-release, test-debug, test-tsan, lint]
     if: always()
 
