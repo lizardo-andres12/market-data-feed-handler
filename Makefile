@@ -9,6 +9,7 @@ TEST_GEN_SCRIPT := test_generator.py
 
 TYPE ?= Release
 EXTRA_FLAGS ?=
+TSAN ?= OFF
 
 .PHONY: all build run test clean
 
@@ -18,7 +19,8 @@ build:
 	@mkdir -p $(BUILD_DIR)
 	@cmake -S . -B $(BUILD_DIR) \
 		-DCMAKE_BUILD_TYPE=$(TYPE) \
-		-DCMAKE_CXX_FLAGS="$(EXTRA_FLAGS)"
+		-DCMAKE_CXX_FLAGS="$(EXTRA_FLAGS)" \
+		-DENABLE_TSAN=$(TSAN)
 	@cmake --build $(BUILD_DIR)
 	@cp $(BUILD_DIR)/compile_commands.json .  # So clangd LSP stops complaining about `#include` paths
 
@@ -29,6 +31,13 @@ tgen: $(TEST_GEN_SCRIPT)
 	python3 $(TEST_GEN_SCRIPT)
 
 test: $(BUILD_DIR)
+	@cd $(BUILD_DIR) && ctest --output-on-failure
+
+test-tsan:
+	@echo "Building with TSan enabled..."
+	@$(MAKE) clean
+	@$(MAKE) build TSAN=ON TYPE=Debug
+	@echo "Running tests with TSan..."
 	@cd $(BUILD_DIR) && ctest --output-on-failure
 
 clean:
