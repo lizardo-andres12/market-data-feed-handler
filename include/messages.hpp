@@ -2,15 +2,11 @@
 
 #include <cstdint>
 
-
 /**
  * @brief The enumeration of exchange message types. This is needed to correctly interpret message
  * size and contents.
  */
-enum class MessageType: std::uint8_t {
-    Trade = 1,
-    Quote
-};
+enum class MessageType : std::uint8_t { Trade = 1, Quote };
 
 /**
  * @brief The struct representation of a `TradeMessage` as sent by the exchange. This struct is
@@ -48,4 +44,3 @@ union MarketDataMessage {
     TradeMessage trade;
     QuoteMessage quote;
 };
-

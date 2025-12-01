@@ -5,22 +5,21 @@
 #include <optional>
 #include <unordered_map>
 
-
 /**
  * @brief A class for storing symbols mapped to executed trade metadata useful for calculating VWAP.
  * Supports insertion of a symbol/entry pair and updating the entry for an existing symbol. This
  * data structure cannot and should not be moved or copied.
  */
 class VWAPTracker {
-public:
+  public:
     /**
      * @brief The collection of relevant data to store in the VWAPTracker for a given symbol.
      */
     struct VWAPEntry {
-	std::uint64_t updatedAt;
-	std::uint64_t totalPriceByQuantity;
-	std::uint64_t totalQuantity;
-	std::uint32_t totalTrades;
+        std::uint64_t updatedAt;
+        std::uint64_t totalPriceByQuantity;
+        std::uint64_t totalQuantity;
+        std::uint32_t totalTrades;
     };
 
     /**
@@ -32,7 +31,8 @@ public:
      * @brief Attempts to retrieve the VWAP metadata object associated with the input symbol.
      *
      * @param key The symbol of the instrument stored as the key.
-     * @return An optional containing a const pointer to the `VWAPEntry` associated with `key` if it exists.
+     * @return An optional containing a const pointer to the `VWAPEntry` associated with `key` if it
+     * exists.
      */
     std::optional<const VWAPEntry*> getVWAP(std::uint64_t symbol) const;
 
@@ -45,7 +45,7 @@ public:
     void upsertVWAP(const std::uint64_t symbol, const TradeMessage& msg);
 
     std::size_t size() const {
-	return tracker_.size();
+        return tracker_.size();
     }
 
     /**
@@ -58,7 +58,6 @@ public:
     void operator=(const VWAPTracker& vt) = delete;
     void operator=(VWAPTracker&& vt) = delete;
 
-private:
+  private:
     std::unordered_map<std::uint64_t, VWAPEntry> tracker_;
 };
-

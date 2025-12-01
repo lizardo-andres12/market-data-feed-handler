@@ -3,13 +3,12 @@
 
 #include "ringbuffer/spsc_queue.hpp"
 
-
 class SPSCQueueTest : public testing::Test {
-protected:
+  protected:
     void SetUp() override {
-	for (int i = 1; i <= QUEUE_SIZE_; ++i) {
-	    queue_.enqueue(i);
-	}
+        for (int i = 1; i <= QUEUE_SIZE_; ++i) {
+            queue_.enqueue(i);
+        }
     }
 
     static constexpr int QUEUE_SIZE_ = 8;
@@ -26,7 +25,7 @@ TEST_F(SPSCQueueTest, Enqueue) {
     int toInsert = 1;
 
     EXPECT_TRUE(queue.enqueue(toInsert)); /// queue gets full here
-    
+
     toInsert++;
     EXPECT_FALSE(queue.enqueue(toInsert));
 }
@@ -34,7 +33,7 @@ TEST_F(SPSCQueueTest, Enqueue) {
 TEST_F(SPSCQueueTest, Dequeue) {
     SPSCQueue<int, QUEUE_SIZE_> queue;
     for (int i = 1; i < QUEUE_SIZE_; ++i) {
-	queue.enqueue(i);
+        queue.enqueue(i);
     }
     int res;
     int expected = 1;
@@ -53,7 +52,7 @@ TEST_F(SPSCQueueTest, Dequeue) {
 TEST_F(SPSCQueueTest, IsFull) {
     SPSCQueue<int, QUEUE_SIZE_> queue;
     for (int i = 1; i < QUEUE_SIZE_; ++i) {
-	EXPECT_TRUE(queue.enqueue(i));
+        EXPECT_TRUE(queue.enqueue(i));
     }
 
     EXPECT_TRUE(queue.isFull());
@@ -64,4 +63,3 @@ TEST_F(SPSCQueueTest, IsEmpty) {
     EXPECT_FALSE(queue_.isEmpty());
     EXPECT_TRUE(empty_.isEmpty());
 }
-
