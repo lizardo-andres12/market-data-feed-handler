@@ -25,15 +25,6 @@ build:
 	@cmake --build $(BUILD_DIR)
 	@cp $(BUILD_DIR)/compile_commands.json .  # So clangd LSP stops complaining about `#include` paths
 
-build-ci:
-	@mkdir -p $(BUILD_DIR)
-	@cmake -S . -B $(BUILD_DIR) \
-		-DCMAKE_BUILD_TYPE=$(TYPE) \
-		-DCMAKE_CXX_FLAGS="$(EXTRA_FLAGS)" \
-		-DCMAKE_BUILD_PARALLEL_LEVEL="$(NPROC)" \
-		-DENABLE_TSAN=$(TSAN)
-	@cmake --build $(BUILD_DIR)
-
 run: $(EXECUTABLE)
 	./$(EXECUTABLE) < $(INPUT_FILE)
 
@@ -52,4 +43,18 @@ test-tsan:
 
 clean:
 	@rm -rf $(BUILD_DIR)/*
+
+# === CI related targets
+
+build-ci:
+	@mkdir -p $(BUILD_DIR)
+	@cmake -S . -B $(BUILD_DIR) \
+		-DCMAKE_BUILD_TYPE=$(TYPE) \
+		-DCMAKE_CXX_FLAGS="$(EXTRA_FLAGS)" \
+		-DCMAKE_BUILD_PARALLEL_LEVEL="$(NPROC)" \
+		-DENABLE_TSAN=$(TSAN)
+	@cmake --build $(BUILD_DIR)
+
+test-ci: $(BUILD_DIR)
+	@cd $(BUILD_DIR) && ctest --output-on-failure --verbose
 
