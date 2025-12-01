@@ -31,7 +31,7 @@ run: $(EXECUTABLE)
 tgen: $(TEST_GEN_SCRIPT)
 	python3 $(TEST_GEN_SCRIPT)
 
-test: $(BUILD_DIR)
+test:
 	@cd $(BUILD_DIR) && ctest --output-on-failure
 
 test-tsan:
@@ -55,6 +55,6 @@ build-ci:
 		-DENABLE_TSAN=$(TSAN)
 	@cmake --build $(BUILD_DIR)
 
-test-ci: $(BUILD_DIR)
+test-ci:
 	@cd $(BUILD_DIR) && ctest --output-on-failure --verbose
 
