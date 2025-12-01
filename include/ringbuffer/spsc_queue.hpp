@@ -11,6 +11,8 @@
  * This class provides lock-free, concurrency-safe operations to add and remove items into a FIFO ring buffer queue with constant size.
  * The size of the queue must be a power of 2 on instantiation. This data structure will take ownership of all objects added.
  *
+ * Note: The actual capacity of this queue is N-1, as the full condition must be differentiated from the empty condition. The full condition is writeIdx+1 & (N-1) == readIdx, in other words, if the current write is at the last free cell behind the read pointer, we must be full.
+ *
  * @tparam T The type of element to store in the Queue. This type must be moveable.
  * @tparam N The size of the queue. This value must be a power of 2. The queue will dynamically allocate `sizeof(T) * N` many
  * 		bytes for storage and will never move the queue from that allocated space.
