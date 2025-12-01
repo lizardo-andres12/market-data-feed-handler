@@ -52,6 +52,10 @@ public:
      */
     void showState() const;
 
+    std::size_t size() const {
+	return book_.size();
+    }
+
     OrderBook(const OrderBook& ob) = delete;
     OrderBook(OrderBook&& ob) = delete;
     void operator=(const OrderBook& ob) = delete;
