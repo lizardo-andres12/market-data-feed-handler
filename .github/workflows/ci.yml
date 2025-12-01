@@ -280,7 +280,7 @@ jobs:
     - name: Check code formatting
       run: |
         find src include tests -name "*.cpp -o -name "*.hpp" | \
-        xargs clang-format --dry-run -Werror
+          xargs clang-format --dry-run -Werror
       continue-on-error: true
 
   summary:
