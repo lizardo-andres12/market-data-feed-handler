@@ -27,14 +27,10 @@ jobs:
           python3
 
     - name: Verify installations
-      run: |
-        g++ --version \
-        cmake --version \
-        make --version \
-        python3 --version
+      run: g++ --version && cmake --version && make --version && python3 --version
 
     - name: Build
-      run: NPROC=$(nproc) make build
+      run: make build
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -67,14 +63,10 @@ jobs:
           python3
 
     - name: Verify installations
-      run: |
-        g++ --version \
-        cmake --version \
-        make --version \
-        python3 --version
+      run: g++ --version && cmake --version && make --version && python3 --version
 
     - name: Build
-      run: TYPE=Debug NPROC=$(nproc) make build
+      run: TYPE=Debug make build
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -106,14 +98,10 @@ jobs:
           python3
 
     - name: Verify installations
-      run: |
-        g++ --version \
-        cmake --version \
-        make --version \
-        python3 --version
+      run: g++ --version && cmake --version && make --version && python3 --version
 
     - name: Build
-      run: TYPE=Debug TSAN=On NPROC=$(nproc) make build
+      run: TYPE=Debug TSAN=On make build
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -158,7 +146,7 @@ jobs:
       run: make tgen
 
     - name: Run tests
-      run: make test
+      run: make test-verbose
 
     - name: Run main application (smoke test)
       run: make run
@@ -203,7 +191,7 @@ jobs:
       run: make tgen
 
     - name: Run tests
-      run: make test
+      run: make test-verbose
 
     - name: Run main application (smoke test)
       run: make run
@@ -248,7 +236,7 @@ jobs:
       run: make tgen
 
     - name: Run tests
-      run: make test
+      run: make test-verbose
       env:
         TSAN_OPTIONS: "halt_on_error=1 history_size=7 second_deadlock_stack=1"
 
