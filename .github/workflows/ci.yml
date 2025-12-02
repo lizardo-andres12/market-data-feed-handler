@@ -40,7 +40,9 @@ jobs:
           build/run_tests
           build/main.out
           build/CTestTestfile.cmake
-          build/Testing/
+          build/run_tests[1]_include.cmake
+          build/run_tests[1]_tests.cmake
+          build/lib/
         retention-days: 1
 
 
@@ -76,7 +78,9 @@ jobs:
           build/run_tests
           build/main.out
           build/CTestTestfile.cmake
-          build/Testing/
+          build/run_tests[1]_include.cmake
+          build/run_tests[1]_tests.cmake
+          build/lib/
         retention-days: 1
 
   build-tsan:
@@ -101,7 +105,7 @@ jobs:
       run: g++ --version && cmake --version && make --version && python3 --version
 
     - name: Build
-      run: TYPE=Debug TSAN=On make build
+      run: TYPE=Debug TSAN=ON make build
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -111,7 +115,9 @@ jobs:
           build/run_tests
           build/main.out
           build/CTestTestfile.cmake
-          build/Testing/
+          build/run_tests[1]_include.cmake
+          build/run_tests[1]_tests.cmake
+          build/lib/
         retention-days: 1
 
   test-release:
@@ -128,7 +134,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y python3
 
-    - name: Verify installations
+    - name: Verify installation
       run: python3 --version
 
     - name: Download build artifact
@@ -156,7 +162,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: test-logs-release
-        path: build/Testing/Temporary
+        path: build/Testing/Temporary/
         retention-days: 7
 
   test-debug:
@@ -173,7 +179,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y python3
 
-    - name: Verify installations
+    - name: Verify installation
       run: python3 --version
 
     - name: Download build artifact
@@ -201,7 +207,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: test-logs-debug
-        path: build/Testing/Temporary
+        path: build/Testing/Temporary/
         retention-days: 7
 
   test-tsan:
@@ -218,7 +224,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y python3
 
-    - name: Verify installations
+    - name: Verify installation
       run: python3 --version
 
     - name: Download build artifact
@@ -249,8 +255,8 @@ jobs:
       if: failure()
       uses: actions/upload-artifact@v4
       with:
-        name: test-logs-debug
-        path: build/Testing/Temporary
+        name: test-logs-tsan
+        path: build/Testing/Temporary/
         retention-days: 7
 
   lint:
@@ -265,9 +271,10 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y clang-format
+
     - name: Check code formatting
       run: |
-        find src include tests -name "*.cpp" -o -name "*.hpp" | \
+        find src include tests \( -name "*.cpp" -o -name "*.hpp" \) | \
           xargs clang-format --dry-run -Werror
       continue-on-error: true
 
