@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-release:
-    name: Build (Release)
+  build-test-release:
+    name: Build & Test (Release)
     runs-on: ubuntu-latest
 
     steps:
@@ -32,22 +32,30 @@ jobs:
     - name: Build
       run: make build
 
+    - name: Generate test data
+      run: make tgen
+
+    - name: Run tests
+      run: make test-verbose
+
+    - name: Upload test logs on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-logs-release
+        path: build/Testing/Temporary/
+        retention-days: 7
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: build-release
-        path: |
-          build/run_tests
-          build/main.out
-          build/CTestTestfile.cmake
-          build/run_tests[1]_include.cmake
-          build/run_tests[1]_tests.cmake
-          build/lib/
+        path: build/
         retention-days: 1
 
 
-  build-debug:
-    name: Build (Debug)
+  build-test-debug:
+    name: Build & Test (Debug)
     runs-on: ubuntu-latest
 
     steps:
@@ -70,21 +78,29 @@ jobs:
     - name: Build
       run: TYPE=Debug make build
 
+    - name: Generate test data
+      run: make tgen
+
+    - name: Run tests
+      run: make test-verbose
+
+    - name: Upload test logs on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-logs-debug
+        path: build/Testing/Temporary/
+        retention-days: 7
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: build-debug
-        path: |
-          build/run_tests
-          build/main.out
-          build/CTestTestfile.cmake
-          build/run_tests[1]_include.cmake
-          build/run_tests[1]_tests.cmake
-          build/lib/
+        path: build/
         retention-days: 1
 
-  build-tsan:
-    name: Build (Debug + TSan)
+  build-test-tsan:
+    name: Build & Test (Debug + TSan)
     runs-on: ubuntu-latest
 
     steps:
@@ -106,148 +122,14 @@ jobs:
 
     - name: Build
       run: TYPE=Debug TSAN=ON make build
-
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-tsan
-        path: |
-          build/run_tests
-          build/main.out
-          build/CTestTestfile.cmake
-          build/run_tests[1]_include.cmake
-          build/run_tests[1]_tests.cmake
-          build/lib/
-        retention-days: 1
-
-  test-release:
-    name: Test (Release)
-    runs-on: ubuntu-latest
-    needs: build-release
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Install python3
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y python3
-
-    - name: Verify installation
-      run: python3 --version
-
-    - name: Download build artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: build-release
-        path: build
-
-    - name: Restore execute permissions
-      run: |
-        chmod +x build/run_tests
-        chmod +x build/main.out
-
-    - name: Generate test data
-      run: make tgen
-
-    - name: Run tests
-      run: make test-verbose
-
-    - name: Run main application (smoke test)
-      run: make run
-
-    - name: Upload test logs on failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-logs-release
-        path: build/Testing/Temporary/
-        retention-days: 7
-
-  test-debug:
-    name: Test (Debug)
-    runs-on: ubuntu-latest
-    needs: build-debug
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Install python3
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y python3
-
-    - name: Verify installation
-      run: python3 --version
-
-    - name: Download build artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: build-debug
-        path: build
-
-    - name: Restore execute permissions
-      run: |
-        chmod +x build/run_tests
-        chmod +x build/main.out
-
-    - name: Generate test data
-      run: make tgen
-
-    - name: Run tests
-      run: make test-verbose
-
-    - name: Run main application (smoke test)
-      run: make run
-
-    - name: Upload test logs on failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-logs-debug
-        path: build/Testing/Temporary/
-        retention-days: 7
-
-  test-tsan:
-    name: Test (Debug + TSan)
-    runs-on: ubuntu-latest
-    needs: build-tsan
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Install python3
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y python3
-
-    - name: Verify installation
-      run: python3 --version
-
-    - name: Download build artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: build-tsan
-        path: build
-
-    - name: Restore execute permissions
-      run: |
-        chmod +x build/run_tests
-        chmod +x build/main.out
-
-    - name: Generate test data
-      run: make tgen
-
-    - name: Run tests
-      run: make test-verbose
       env:
         TSAN_OPTIONS: "halt_on_error=1 history_size=7 second_deadlock_stack=1"
 
-    - name: Run main application (smoke test)
-      run: make run
+    - name: Generate test data
+      run: make tgen
+
+    - name: Run tests
+      run: make test-verbose
       env:
         TSAN_OPTIONS: "halt_on_error=1 history_size=7"
 
@@ -258,6 +140,13 @@ jobs:
         name: test-logs-tsan
         path: build/Testing/Temporary/
         retention-days: 7
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-tsan
+        path:
+        retention-days: 1
 
   lint:
     name: Code Formatting
@@ -288,14 +177,14 @@ jobs:
     - name: Check all jobs status
       run: |
         echo "Build & Test Results:"
-        echo "  Release: ${{ needs.test-release.result }}"
-        echo "  Debug: ${{ needs.test-debug.result }}"
-        echo "  TSan: ${{ needs.test-tsan.result }}"
+        echo "  Release: ${{ needs.build-test-release.result }}"
+        echo "  Debug: ${{ needs.build-test-debug.result }}"
+        echo "  TSan: ${{ needs.build-test-tsan.result }}"
         echo "  Lint: ${{ needs.lint.result }}"
         
-        if [ "${{ needs.test-release.result }}" != "success" ] || \
-           [ "${{ needs.test-debug.result }}" != "success" ] || \
-           [ "${{ needs.test-tsan.result }}" != "success" ]; then
+        if [ "${{ needs.build-test-release.result }}" != "success" ] || \
+           [ "${{ needs.build-test-debug.result }}" != "success" ] || \
+           [ "${{ needs.build-test-tsan.result }}" != "success" ]; then
           echo ""
           echo "❌ CI Failed - one or more test jobs failed"
           exit 1
