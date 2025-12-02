@@ -33,6 +33,9 @@ tgen: $(TEST_GEN_SCRIPT)
 test:
 	@cd $(BUILD_DIR) && ctest --output-on-failure
 
+test-verbose:
+	@cd $(BUILD_DIR) && ctest --output-on-failure --verbose
+
 test-tsan:
 	@echo "Building with TSan enabled..."
 	@$(MAKE) clean
