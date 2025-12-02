@@ -37,10 +37,10 @@ jobs:
       with:
         name: build-release
         path: |
-          build/
-          !build/lib/
-          !build/_deps/
-          !build/CMakeFiles/
+          build/run_tests
+          build/main.out
+          build/CTestTestfile.cmake
+          build/Testing/
         retention-days: 1
 
 
@@ -73,10 +73,10 @@ jobs:
       with:
         name: build-debug
         path: |
-          build/
-          !build/lib/
-          !build/_deps/
-          !build/CMakeFiles/
+          build/run_tests
+          build/main.out
+          build/CTestTestfile.cmake
+          build/Testing/
         retention-days: 1
 
   build-tsan:
@@ -108,10 +108,10 @@ jobs:
       with:
         name: build-tsan
         path: |
-          build/
-          !build/lib/
-          !build/_deps/
-          !build/CMakeFiles/
+          build/run_tests
+          build/main.out
+          build/CTestTestfile.cmake
+          build/Testing/
         retention-days: 1
 
   test-release:
@@ -296,3 +296,4 @@ jobs:
         
         echo ""
         echo "✅ All builds and tests passed successfully!"
+
