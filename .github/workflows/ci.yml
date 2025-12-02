@@ -145,7 +145,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: build-tsan
-        path:
+        path: build/
         retention-days: 1
 
   lint:
