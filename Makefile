@@ -10,7 +10,6 @@ TEST_GEN_SCRIPT := test_generator.py
 TYPE ?= Release
 TSAN ?= OFF
 EXTRA_FLAGS ?=
-NPROC ?=
 
 .PHONY: all build run test clean
 
@@ -43,18 +42,4 @@ test-tsan:
 
 clean:
 	@rm -rf $(BUILD_DIR)/*
-
-# === CI related targets
-
-build-ci:
-	@mkdir -p $(BUILD_DIR)
-	@cmake -S . -B $(BUILD_DIR) \
-		-DCMAKE_BUILD_TYPE=$(TYPE) \
-		-DCMAKE_CXX_FLAGS="$(EXTRA_FLAGS)" \
-		-DCMAKE_BUILD_PARALLEL_LEVEL="$(NPROC)" \
-		-DENABLE_TSAN=$(TSAN)
-	@cmake --build $(BUILD_DIR)
-
-test-ci:
-	@cd $(BUILD_DIR) && ctest --output-on-failure --verbose
 
